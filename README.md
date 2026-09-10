@@ -225,7 +225,3 @@ API ENDPOINTS SUMMARY
    - POST /api/seed-data                          Seed Sample Data
 
 
-LICENSE
---------------------------------------------------------------------------------
-This project is open-source and available under the MIT License.
-================================================================================

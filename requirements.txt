@@ -1,0 +1,29 @@
+# Core Web & API Framework
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
+
+# Database & ORM
+SQLAlchemy>=2.0.25
+
+# Document & Resume Parsing
+pypdf>=4.0.0
+python-docx>=1.1.0
+
+# NLP, Vector Match & Embeddings
+scikit-learn>=1.4.0
+numpy>=1.26.0
+
+# Background Tasks & Caching
+redis>=5.0.1
+requests>=2.31.0
+
+# Optional Enterprise Enhancements (Uncomment as needed)
+# sentence-transformers>=2.5.0
+# qdrant-client>=1.8.0
+# faster-whisper>=1.0.0
+# celery>=5.3.6
+# e2b-code-interpreter>=0.0.8
+# litellm>=1.30.0

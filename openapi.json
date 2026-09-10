@@ -1,0 +1,1437 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Recruitment Assessment System",
+    "description": "AI Recruitment Assessment System with multi-agent evaluation, RAG vector search, and LangGraph workflow.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/jobs": {
+      "get": {
+        "tags": [
+          "1. Job Management"
+        ],
+        "summary": "List All Jobs",
+        "description": "Returns all active job requisitions ordered by most recent.",
+        "operationId": "list_jobs_api_jobs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/JobResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Jobs Api Jobs Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "1. Job Management"
+        ],
+        "summary": "Create Job Requisition",
+        "description": "Creates a new job requisition with required and nice-to-have skills.",
+        "operationId": "create_job_api_jobs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "1. Job Management"
+        ],
+        "summary": "Get Job by ID",
+        "description": "Retrieves full specification for a specific job.",
+        "operationId": "get_job_api_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/candidates/upload": {
+      "post": {
+        "tags": [
+          "2. Candidate Ingestion & Resume Parsing"
+        ],
+        "summary": "Upload & Parse Candidate Resume",
+        "description": "Uploads a resume file (PDF, DOCX, TXT), runs the Parsing Agent, and indexes it in vector storage.",
+        "operationId": "upload_resume_api_candidates_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_resume_api_candidates_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/candidates": {
+      "get": {
+        "tags": [
+          "2. Candidate Ingestion & Resume Parsing"
+        ],
+        "summary": "List Candidates",
+        "description": "Lists all candidates. If anonymized is enabled, masks PII for fair evaluation.",
+        "operationId": "list_candidates_api_candidates_get",
+        "parameters": [
+          {
+            "name": "anonymized",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Anonymized"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CandidateResponse"
+                  },
+                  "title": "Response List Candidates Api Candidates Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/candidates/{candidate_id}": {
+      "get": {
+        "tags": [
+          "2. Candidate Ingestion & Resume Parsing"
+        ],
+        "summary": "Get Candidate Details",
+        "description": "Retrieves specific candidate profile.",
+        "operationId": "get_candidate_api_candidates__candidate_id__get",
+        "parameters": [
+          {
+            "name": "candidate_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Candidate Id"
+            }
+          },
+          {
+            "name": "anonymized",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Anonymized"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/matching/match": {
+      "post": {
+        "tags": [
+          "3. Matching & RAG Vector Search"
+        ],
+        "summary": "Match Candidate with Job",
+        "description": "Computes exact skills match, missing skills, and semantic search score.",
+        "operationId": "match_candidate_api_matching_match_post",
+        "parameters": [
+          {
+            "name": "candidate_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Candidate Id"
+            }
+          },
+          {
+            "name": "job_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/matching/search-resumes": {
+      "post": {
+        "tags": [
+          "3. Matching & RAG Vector Search"
+        ],
+        "summary": "Semantic Vector Search (RAG)",
+        "description": "Searches indexed resume vector embeddings using cosine similarity.",
+        "operationId": "search_resumes_rag_api_matching_search_resumes_post",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Query"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/start": {
+      "post": {
+        "tags": [
+          "4. Technical & Coding Assessment"
+        ],
+        "summary": "Start Candidate Assessment",
+        "description": "Initializes a new assessment tracking session for a candidate against a job.",
+        "operationId": "start_assessment_api_assessment_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/coding-challenge": {
+      "get": {
+        "tags": [
+          "4. Technical & Coding Assessment"
+        ],
+        "summary": "Get Coding Challenge",
+        "description": "Fetches coding problem, starter code, test suites, and expected time complexity.",
+        "operationId": "get_code_challenge_api_assessment_coding_challenge_get",
+        "parameters": [
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "python",
+              "title": "Language"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/coding-submit": {
+      "post": {
+        "tags": [
+          "4. Technical & Coding Assessment"
+        ],
+        "summary": "Submit & Execute Code",
+        "description": "Executes candidate code in an isolated sandbox, tests outputs, and analyzes time complexity.",
+        "operationId": "submit_coding_solution_api_assessment_coding_submit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodingSubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/{assessment_id}/tech-questions": {
+      "get": {
+        "tags": [
+          "4. Technical & Coding Assessment"
+        ],
+        "summary": "Generate Technical Questions",
+        "description": "Generates adaptive technical questions tailored to the candidate's detected skill set.",
+        "operationId": "get_technical_questions_api_assessment__assessment_id__tech_questions_get",
+        "parameters": [
+          {
+            "name": "assessment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Assessment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/tech-answer": {
+      "post": {
+        "tags": [
+          "4. Technical & Coding Assessment"
+        ],
+        "summary": "Submit Technical Answer & Follow-up",
+        "description": "Evaluates candidate response and dynamically generates a follow-up probing trade-offs.",
+        "operationId": "submit_tech_answer_api_assessment_tech_answer_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TechInterviewAnswer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/{assessment_id}": {
+      "get": {
+        "tags": [
+          "4. Technical & Coding Assessment"
+        ],
+        "summary": "Get Assessment Status",
+        "description": "Retrieves full assessment state, logs, and score breakdown.",
+        "operationId": "get_assessment_api_assessment__assessment_id__get",
+        "parameters": [
+          {
+            "name": "assessment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Assessment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/screening": {
+      "post": {
+        "tags": [
+          "5. Audio & Communication Screening"
+        ],
+        "summary": "Evaluate Speech Screening",
+        "description": "Screens candidate communication clarity, filler words, sentiment, and communication rating.",
+        "operationId": "submit_screening_api_assessment_screening_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScreeningUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/run-pipeline/{assessment_id}": {
+      "post": {
+        "tags": [
+          "6. LangGraph Workflow & HR Checkpoints"
+        ],
+        "summary": "Execute LangGraph Workflow",
+        "description": "Executes the complete multi-stage recruitment workflow: Matching -> Screening -> Fair Scoring -> HR Decision.",
+        "operationId": "run_pipeline_api_assessment_run_pipeline__assessment_id__post",
+        "parameters": [
+          {
+            "name": "assessment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Assessment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/assessment/hr-checkpoint/{assessment_id}": {
+      "post": {
+        "tags": [
+          "6. LangGraph Workflow & HR Checkpoints"
+        ],
+        "summary": "HR Human-in-the-Loop Checkpoint",
+        "description": "Resumes paused workflow from HR_APPROVAL_CHECKPOINT with human HR approval or rejection.",
+        "operationId": "hr_approval_checkpoint_api_assessment_hr_checkpoint__assessment_id__post",
+        "parameters": [
+          {
+            "name": "assessment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Assessment Id"
+            }
+          },
+          {
+            "name": "approved",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "title": "Approved"
+            }
+          },
+          {
+            "name": "feedback",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Feedback"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard/stats": {
+      "get": {
+        "tags": [
+          "7. Dashboard Analytics & Seed Data"
+        ],
+        "summary": "Get HR Analytics & Chart Data",
+        "description": "Returns aggregated stats: total candidates, Python vs Java counts, decisions, and average scores.",
+        "operationId": "get_dashboard_stats_api_dashboard_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard/ranked-candidates/{job_id}": {
+      "get": {
+        "tags": [
+          "7. Dashboard Analytics & Seed Data"
+        ],
+        "summary": "Get Ranked Candidate Pipeline",
+        "description": "Computes percentile rankings and composite scores for all candidates assessed for a job.",
+        "operationId": "get_ranked_candidates_for_job_api_dashboard_ranked_candidates__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dashboard/notifications": {
+      "get": {
+        "tags": [
+          "7. Dashboard Analytics & Seed Data"
+        ],
+        "summary": "Get HR Alerts Feed",
+        "description": "Returns the latest automated shortlisting notifications for HR.",
+        "operationId": "get_notifications_api_dashboard_notifications_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/seed-data": {
+      "post": {
+        "tags": [
+          "7. Dashboard Analytics & Seed Data"
+        ],
+        "summary": "Seed Sample Recruitment Data",
+        "description": "Seeds sample jobs and candidates (Python & Java) for immediate dashboard exploration.",
+        "operationId": "seed_sample_data_api_seed_data_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AssessmentCreate": {
+        "properties": {
+          "candidate_id": {
+            "type": "integer",
+            "title": "Candidate Id"
+          },
+          "job_id": {
+            "type": "integer",
+            "title": "Job Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "candidate_id",
+          "job_id"
+        ],
+        "title": "AssessmentCreate"
+      },
+      "AssessmentResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "candidate_id": {
+            "type": "integer",
+            "title": "Candidate Id"
+          },
+          "job_id": {
+            "type": "integer",
+            "title": "Job Id"
+          },
+          "match_percentage": {
+            "type": "number",
+            "title": "Match Percentage"
+          },
+          "matched_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Skills"
+          },
+          "missing_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Skills"
+          },
+          "semantic_search_score": {
+            "type": "number",
+            "title": "Semantic Search Score"
+          },
+          "technical_score": {
+            "type": "number",
+            "title": "Technical Score"
+          },
+          "coding_score": {
+            "type": "number",
+            "title": "Coding Score"
+          },
+          "communication_score": {
+            "type": "number",
+            "title": "Communication Score"
+          },
+          "final_score": {
+            "type": "number",
+            "title": "Final Score"
+          },
+          "performance_level": {
+            "type": "string",
+            "title": "Performance Level"
+          },
+          "decision": {
+            "type": "string",
+            "title": "Decision"
+          },
+          "hr_approved": {
+            "type": "boolean",
+            "title": "Hr Approved"
+          },
+          "hr_feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hr Feedback"
+          },
+          "notification_sent": {
+            "type": "boolean",
+            "title": "Notification Sent"
+          },
+          "workflow_stage": {
+            "type": "string",
+            "title": "Workflow Stage"
+          },
+          "interview_log": {
+            "items": {},
+            "type": "array",
+            "title": "Interview Log"
+          },
+          "coding_submission": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Coding Submission"
+          },
+          "communication_log": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Communication Log"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "candidate_id",
+          "job_id",
+          "match_percentage",
+          "matched_skills",
+          "missing_skills",
+          "semantic_search_score",
+          "technical_score",
+          "coding_score",
+          "communication_score",
+          "final_score",
+          "performance_level",
+          "decision",
+          "hr_approved",
+          "notification_sent",
+          "workflow_stage",
+          "interview_log",
+          "coding_submission",
+          "communication_log",
+          "created_at"
+        ],
+        "title": "AssessmentResponse"
+      },
+      "Body_upload_resume_api_candidates_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_resume_api_candidates_upload_post"
+      },
+      "CandidateResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "anonymized_id": {
+            "type": "string",
+            "title": "Anonymized Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "graduation_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graduation Year"
+          },
+          "education": {
+            "items": {},
+            "type": "array",
+            "title": "Education",
+            "default": []
+          },
+          "experience_years": {
+            "type": "integer",
+            "title": "Experience Years",
+            "default": 0
+          },
+          "experience": {
+            "items": {},
+            "type": "array",
+            "title": "Experience",
+            "default": []
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skills",
+            "default": []
+          },
+          "projects": {
+            "items": {},
+            "type": "array",
+            "title": "Projects",
+            "default": []
+          },
+          "resume_filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume Filename"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "anonymized_id",
+          "created_at"
+        ],
+        "title": "CandidateResponse"
+      },
+      "CodingSubmitRequest": {
+        "properties": {
+          "assessment_id": {
+            "type": "integer",
+            "title": "Assessment Id"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "challenge_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Challenge Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assessment_id",
+          "language",
+          "code"
+        ],
+        "title": "CodingSubmitRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "JobCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department",
+            "default": "Engineering"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "required_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Skills",
+            "default": []
+          },
+          "nice_to_have_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Nice To Have Skills",
+            "default": []
+          },
+          "min_experience_years": {
+            "type": "integer",
+            "title": "Min Experience Years",
+            "default": 0
+          },
+          "min_score_threshold": {
+            "type": "number",
+            "title": "Min Score Threshold",
+            "default": 70.0
+          },
+          "primary_language": {
+            "type": "string",
+            "title": "Primary Language",
+            "default": "Python"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "description"
+        ],
+        "title": "JobCreate"
+      },
+      "JobResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "required_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Required Skills"
+          },
+          "nice_to_have_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Nice To Have Skills"
+          },
+          "min_experience_years": {
+            "type": "integer",
+            "title": "Min Experience Years"
+          },
+          "min_score_threshold": {
+            "type": "number",
+            "title": "Min Score Threshold"
+          },
+          "primary_language": {
+            "type": "string",
+            "title": "Primary Language"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "department",
+          "description",
+          "required_skills",
+          "nice_to_have_skills",
+          "min_experience_years",
+          "min_score_threshold",
+          "primary_language",
+          "created_at"
+        ],
+        "title": "JobResponse"
+      },
+      "ScreeningUploadRequest": {
+        "properties": {
+          "assessment_id": {
+            "type": "integer",
+            "title": "Assessment Id"
+          },
+          "transcript": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assessment_id"
+        ],
+        "title": "ScreeningUploadRequest"
+      },
+      "TechInterviewAnswer": {
+        "properties": {
+          "assessment_id": {
+            "type": "integer",
+            "title": "Assessment Id"
+          },
+          "question_id": {
+            "type": "integer",
+            "title": "Question Id"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assessment_id",
+          "question_id",
+          "question",
+          "answer"
+        ],
+        "title": "TechInterviewAnswer"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "1. Job Management",
+      "description": "Create, list, and manage job requisitions and required skills."
+    },
+    {
+      "name": "2. Candidate Ingestion & Resume Parsing",
+      "description": "Upload resumes (PDF/DOCX/TXT), extract entities via Parsing Agent, and view candidate profiles."
+    },
+    {
+      "name": "3. Matching & RAG Vector Search",
+      "description": "Compare candidate qualifications against Job Descriptions and perform semantic vector search."
+    },
+    {
+      "name": "4. Technical & Coding Assessment",
+      "description": "Generate adaptive technical questions, dynamic follow-ups, and execute code in an isolated sandbox."
+    },
+    {
+      "name": "5. Audio & Communication Screening",
+      "description": "Evaluate speech-to-text transcription, communication clarity, sentiment, and filler-word frequency."
+    },
+    {
+      "name": "6. LangGraph Workflow & HR Checkpoints",
+      "description": "Execute the end-to-end recruitment state machine and manage human-in-the-loop HR approval checkpoints."
+    },
+    {
+      "name": "7. Dashboard Analytics & Seed Data",
+      "description": "Retrieve HR metrics, Python vs Java candidate distribution charts, and populate sample test data."
+    }
+  ]
+}
